@@ -82,7 +82,6 @@ export default function LandingPage() {
           <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
         </div>
       </div>
-
       <footer className="absolute bottom-4 text-center text-sm text-gray-400">
         <p>© 2025 Lara1. Ready to capture your smile!</p>
       </footer>
