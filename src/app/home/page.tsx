@@ -158,7 +158,7 @@ export default function HomePage() {
 
       {/* Header */}
       <div className="bg-gray-800 p-4">
-        <h1 className="text-2xl font-bold text-white text-center">Litrato</h1>
+        <h1 className="text-2xl font-bold text-white text-center">Lara1</h1>
       </div>
 
       {/* Main Content - Split Layout */}
