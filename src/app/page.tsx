@@ -60,7 +60,7 @@ export default function LandingPage() {
 
         <div className="space-y-4">
           <blockquote className="text-xl md:text-2xl text-gray-700 italic leading-relaxed">
-            "Every picture tells a story. Let's create yours together."
+            &ldquo;Every picture tells a story. Let&apos;s create yours together.&rdquo;
           </blockquote>
         </div>
 
