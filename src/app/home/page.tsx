@@ -174,7 +174,7 @@ export default function HomePage() {
       photos.forEach((photo, index) => {
         const link = document.createElement('a')
         link.href = photo
-        link.download = `snapjoy-${index + 1}-${Date.now()}.jpg`
+        link.download = `lara1-${index + 1}-${Date.now()}.jpg`
         link.click()
       })
     }
