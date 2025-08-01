@@ -1,30 +1,11 @@
 "use client"
 
 import { useState, useRef, useEffect } from 'react'
-import { Camera, Settings, Download, RefreshCw, RotateCcw, X, Type, Smile, Image as ImageIcon, Check } from "lucide-react"
-
-type Sticker = {
-  id: string
-  url: string
-  x: number
-  y: number
-  width: number
-  height: number
-}
-
-type TextElement = {
-  id: string
-  content: string
-  x: number
-  y: number
-  color: string
-  fontSize: number
-}
+import { Camera, Settings, Download, RefreshCw, RotateCcw } from "lucide-react"
 
 export default function HomePage() {
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const previewCanvasRef = useRef<HTMLCanvasElement>(null)
   const [photos, setPhotos] = useState<string[]>([])
   const [isCameraReady, setIsCameraReady] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
@@ -34,38 +15,11 @@ export default function HomePage() {
   const [isCapturing, setIsCapturing] = useState(false)
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0)
   const [countdown, setCountdown] = useState(0)
-  const [showPreview, setShowPreview] = useState(false)
-  const [currentPreviewPhoto, setCurrentPreviewPhoto] = useState<string | null>(null)
-  const [activeTool, setActiveTool] = useState<'text' | 'sticker' | 'frame' | null>(null)
-  const [textElements, setTextElements] = useState<TextElement[]>([])
-  const [stickers, setStickers] = useState<Sticker[]>([])
-  const [selectedFrame, setSelectedFrame] = useState<string | null>(null)
-  const [editingText, setEditingText] = useState<TextElement | null>(null)
-  const [newText, setNewText] = useState('')
-
-  // Sample stickers and frames
-  const stickerOptions = [
-    { id: 'heart', url: 'https://cdn-icons-png.flaticon.com/512/535/535183.png' },
-    { id: 'star', url: 'https://cdn-icons-png.flaticon.com/512/1828/1828884.png' },
-    { id: 'smile', url: 'https://cdn-icons-png.flaticon.com/512/742/742752.png' },
-  ]
-
-  const frameOptions = [
-    { id: 'polaroid', url: 'https://www.transparentpng.com/thumb/polaroid/polaroid-frame-png-clipart-0.png' },
-    { id: 'vintage', url: 'https://www.transparentpng.com/thumb/frame/vintage-photo-frame-png-clipart-0.png' },
-    { id: 'modern', url: 'https://www.transparentpng.com/thumb/frame/gold-picture-frame-png-clipart-0.png' },
-  ]
 
   useEffect(() => {
     startCamera()
     return () => stopCamera()
   }, [cameraFacing])
-
-  useEffect(() => {
-    if (showPreview && currentPreviewPhoto) {
-      renderPreview()
-    }
-  }, [showPreview, currentPreviewPhoto, textElements, stickers, selectedFrame])
 
   const startCamera = async () => {
     try {
@@ -174,7 +128,7 @@ export default function HomePage() {
       photos.forEach((photo, index) => {
         const link = document.createElement('a')
         link.href = photo
-        link.download = `lara1-${index + 1}-${Date.now()}.jpg`
+        link.download = `snapjoy-${index + 1}-${Date.now()}.jpg`
         link.click()
       })
     }
@@ -190,156 +144,6 @@ export default function HomePage() {
       case 4: return 'grid-cols-2 grid-rows-2'
       case 6: return 'grid-cols-3 grid-rows-2'
       default: return 'grid-cols-2 grid-rows-2'
-    }
-  }
-
-  const openPreview = (photo: string) => {
-    setCurrentPreviewPhoto(photo)
-    setShowPreview(true)
-    setTextElements([])
-    setStickers([])
-    setSelectedFrame(null)
-  }
-
-  const closePreview = () => {
-    setShowPreview(false)
-    setActiveTool(null)
-  }
-
-  const renderPreview = () => {
-    if (!previewCanvasRef.current || !currentPreviewPhoto) return
-
-    const canvas = previewCanvasRef.current
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
-
-    // Clear canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
-
-    // Draw the photo
-    const img = new Image()
-    img.src = currentPreviewPhoto
-    img.onload = () => {
-      // Set canvas dimensions to match the image
-      canvas.width = img.width
-      canvas.height = img.height
-
-      // Draw the original image
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
-
-      // Apply frame if selected
-      if (selectedFrame) {
-        const frameImg = new Image()
-        frameImg.src = selectedFrame
-        frameImg.onload = () => {
-          ctx.drawImage(frameImg, 0, 0, canvas.width, canvas.height)
-          
-          // Draw text elements
-          textElements.forEach(text => {
-            ctx.fillStyle = text.color
-            ctx.font = `${text.fontSize}px Arial`
-            ctx.fillText(text.content, text.x, text.y)
-          })
-
-          // Draw stickers
-          stickers.forEach(sticker => {
-            const stickerImg = new Image()
-            stickerImg.src = sticker.url
-            stickerImg.onload = () => {
-              ctx.drawImage(
-                stickerImg,
-                sticker.x,
-                sticker.y,
-                sticker.width,
-                sticker.height
-              )
-            }
-          })
-        }
-      } else {
-        // Draw text elements
-        textElements.forEach(text => {
-          ctx.fillStyle = text.color
-          ctx.font = `${text.fontSize}px Arial`
-          ctx.fillText(text.content, text.x, text.y)
-        })
-
-        // Draw stickers
-        stickers.forEach(sticker => {
-          const stickerImg = new Image()
-          stickerImg.src = sticker.url
-          stickerImg.onload = () => {
-            ctx.drawImage(
-              stickerImg,
-              sticker.x,
-              sticker.y,
-              sticker.width,
-              sticker.height
-            )
-          }
-        })
-      }
-    }
-  }
-
-  const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!previewCanvasRef.current || !currentPreviewPhoto) return
-
-    const canvas = previewCanvasRef.current
-    const rect = canvas.getBoundingClientRect()
-    const x = e.clientX - rect.left
-    const y = e.clientY - rect.top
-
-    if (activeTool === 'text') {
-      const newTextElement: TextElement = {
-        id: Date.now().toString(),
-        content: 'Double click to edit',
-        x,
-        y,
-        color: '#ffffff',
-        fontSize: 24
-      }
-      setTextElements([...textElements, newTextElement])
-      setActiveTool(null)
-    } else if (activeTool === 'sticker') {
-      // Add the first sticker option as default
-      const newSticker: Sticker = {
-        id: Date.now().toString(),
-        url: stickerOptions[0].url,
-        x: x - 25,
-        y: y - 25,
-        width: 50,
-        height: 50
-      }
-      setStickers([...stickers, newSticker])
-      setActiveTool(null)
-    }
-  }
-
-  const handleTextDoubleClick = (text: TextElement) => {
-    setEditingText(text)
-    setNewText(text.content)
-  }
-
-  const saveTextEdit = () => {
-    if (editingText) {
-      setTextElements(textElements.map(t => 
-        t.id === editingText.id ? { ...t, content: newText } : t
-      ))
-      setEditingText(null)
-    }
-  }
-
-  const savePreview = () => {
-    if (previewCanvasRef.current) {
-      const updatedPhoto = previewCanvasRef.current.toDataURL('image/jpeg', 0.9)
-      const updatedPhotos = [...photos]
-      const photoIndex = updatedPhotos.findIndex(photo => photo === currentPreviewPhoto)
-      if (photoIndex !== -1) {
-        updatedPhotos[photoIndex] = updatedPhoto
-        setPhotos(updatedPhotos)
-      }
-      closePreview()
     }
   }
 
@@ -416,13 +220,12 @@ export default function HomePage() {
                   className={`relative bg-gray-700 rounded-lg overflow-hidden ${
                     index === 0 && numPhotos === 3 ? 'col-span-2' : ''
                   }`}
-                  onClick={() => photos[index] && openPreview(photos[index])}
                 >
                   {photos[index] ? (
                     <img
                       src={photos[index]}
                       alt={`Photo ${index + 1}`}
-                      className="w-full h-full object-cover cursor-pointer"
+                      className="w-full h-full object-cover"
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-gray-500">
@@ -440,173 +243,6 @@ export default function HomePage() {
           </div>
         </div>
       </div>
-
-      {/* Preview Modal */}
-      {showPreview && currentPreviewPhoto && (
-        <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
-          <div className="relative max-w-4xl w-full">
-            <button
-              onClick={closePreview}
-              className="absolute -top-10 right-0 text-white hover:text-gray-300 z-10"
-            >
-              <X className="h-8 w-8" />
-            </button>
-            
-            <div className="bg-gray-800 rounded-lg p-4">
-              <div className="flex justify-between mb-4">
-                <h3 className="text-white text-xl font-semibold">Edit Photo</h3>
-                <button
-                  onClick={savePreview}
-                  className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md"
-                >
-                  Save Changes
-                </button>
-              </div>
-              
-              <div className="relative">
-                <canvas
-                  ref={previewCanvasRef}
-                  onClick={handleCanvasClick}
-                  className="w-full h-auto max-h-[70vh] border border-gray-600 rounded-lg"
-                />
-                
-                {/* Text elements for interaction */}
-                {textElements.map(text => (
-                  <div
-                    key={text.id}
-                    className="absolute cursor-move"
-                    style={{
-                      left: `${text.x}px`,
-                      top: `${text.y}px`,
-                      color: text.color,
-                      fontSize: `${text.fontSize}px`,
-                    }}
-                    onDoubleClick={() => handleTextDoubleClick(text)}
-                  >
-                    {text.content}
-                  </div>
-                ))}
-              </div>
-              
-              {/* Editing Tools */}
-              <div className="mt-4 flex flex-wrap gap-2">
-                <button
-                  onClick={() => setActiveTool(activeTool === 'text' ? null : 'text')}
-                  className={`px-4 py-2 rounded-md flex items-center gap-2 ${
-                    activeTool === 'text' ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300'
-                  }`}
-                >
-                  <Type className="h-4 w-4" /> Add Text
-                </button>
-                
-                <button
-                  onClick={() => setActiveTool(activeTool === 'sticker' ? null : 'sticker')}
-                  className={`px-4 py-2 rounded-md flex items-center gap-2 ${
-                    activeTool === 'sticker' ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300'
-                  }`}
-                >
-                  <Smile className="h-4 w-4" /> Add Sticker
-                </button>
-                
-                <button
-                  onClick={() => setActiveTool(activeTool === 'frame' ? null : 'frame')}
-                  className={`px-4 py-2 rounded-md flex items-center gap-2 ${
-                    activeTool === 'frame' ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300'
-                  }`}
-                >
-                  <ImageIcon className="h-4 w-4" /> Add Frame
-                </button>
-              </div>
-              
-              {/* Sticker Selection */}
-              {activeTool === 'sticker' && (
-                <div className="mt-4 p-4 bg-gray-700 rounded-lg">
-                  <h4 className="text-white mb-2">Select Sticker</h4>
-                  <div className="flex gap-4">
-                    {stickerOptions.map(sticker => (
-                      <img
-                        key={sticker.id}
-                        src={sticker.url}
-                        alt={sticker.id}
-                        className="w-12 h-12 cursor-pointer hover:opacity-80"
-                        onClick={() => {
-                          const newSticker: Sticker = {
-                            id: Date.now().toString(),
-                            url: sticker.url,
-                            x: 50,
-                            y: 50,
-                            width: 100,
-                            height: 100
-                          }
-                          setStickers([...stickers, newSticker])
-                          setActiveTool(null)
-                        }}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-              
-              {/* Frame Selection */}
-              {activeTool === 'frame' && (
-                <div className="mt-4 p-4 bg-gray-700 rounded-lg">
-                  <h4 className="text-white mb-2">Select Frame</h4>
-                  <div className="flex gap-4">
-                    <button
-                      className={`px-3 py-2 rounded-md ${
-                        !selectedFrame ? 'bg-blue-600 text-white' : 'bg-gray-600 text-gray-300'
-                      }`}
-                      onClick={() => setSelectedFrame(null)}
-                    >
-                      No Frame
-                    </button>
-                    {frameOptions.map(frame => (
-                      <button
-                        key={frame.id}
-                        className={`px-3 py-2 rounded-md ${
-                          selectedFrame === frame.url ? 'bg-blue-600 text-white' : 'bg-gray-600 text-gray-300'
-                        }`}
-                        onClick={() => setSelectedFrame(frame.url)}
-                      >
-                        {frame.id}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-              
-              {/* Text Editing Modal */}
-              {editingText && (
-                <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-                  <div className="bg-gray-800 p-6 rounded-lg max-w-md w-full">
-                    <h3 className="text-white text-lg mb-4">Edit Text</h3>
-                    <input
-                      type="text"
-                      value={newText}
-                      onChange={(e) => setNewText(e.target.value)}
-                      className="w-full p-2 mb-4 bg-gray-700 text-white border border-gray-600 rounded"
-                    />
-                    <div className="flex justify-end gap-2">
-                      <button
-                        onClick={() => setEditingText(null)}
-                        className="px-4 py-2 bg-gray-600 text-white rounded-md"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        onClick={saveTextEdit}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-md"
-                      >
-                        Save
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Bottom Controls */}
       <div className="bg-gray-800 p-6">
